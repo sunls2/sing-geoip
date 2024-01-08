@@ -71,7 +71,7 @@ func download(release *github.RepositoryRelease) ([]byte, error) {
 		return *it.Name == "Country.mmdb"
 	})
 	if geoipAsset == nil {
-		return nil, E.New("Country.mmdb not found in upstream release ", release.Name)
+		return nil, E.New("Country.mmdb not found in upstream release ", release.GetTagName())
 	}
 	return get(geoipAsset.BrowserDownloadURL)
 }
@@ -92,7 +92,7 @@ func parse(binary []byte) (metadata maxminddb.Metadata, countryMap map[string][]
 			return
 		}
 		// idk why
-		code := strings.ToLower(country.RegisteredCountry.IsoCode)
+		code := strings.ToLower(country.Country.IsoCode)
 		countryMap[code] = append(countryMap[code], ipNet)
 	}
 	err = networks.Err()
@@ -170,7 +170,7 @@ func release(source string, destination string, output string, ruleSetOutput str
 	if err != nil {
 		log.Warn("missing destination latest release")
 	} else {
-		if os.Getenv("NO_SKIP") != "true" && strings.Contains(*destinationRelease.Name, *sourceRelease.Name) {
+		if os.Getenv("NO_SKIP") != "true" && strings.Contains(destinationRelease.GetTagName(), sourceRelease.GetTagName()) {
 			log.Info("already latest")
 			setActionOutput("skip", "true")
 			return nil
@@ -239,7 +239,7 @@ func release(source string, destination string, output string, ruleSetOutput str
 		outputRuleSet.Close()
 	}
 
-	setActionOutput("tag", *sourceRelease.Name)
+	setActionOutput("tag", sourceRelease.GetTagName())
 	return nil
 }
 
@@ -248,7 +248,7 @@ func setActionOutput(name string, content string) {
 }
 
 func main() {
-	err := release("Dreamacro/maxmind-geoip", "sagernet/sing-geoip", "geoip.db", "rule-set")
+	err := release("Loyalsoldier/geoip", "sunls2/sing-geoip", "geoip.db", "rule-set")
 	if err != nil {
 		log.Fatal(err)
 	}
